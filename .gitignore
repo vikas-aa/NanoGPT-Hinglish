@@ -1,0 +1,38 @@
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Training checkpoints
+checkpoints/
+*.pt
+*.pth
+*.ckpt
+
+# Generated/tokenized training data
+data/train.bin
+data/val.bin
+data/tokenizer.json
+
+# Dataset files
+data/chat_train.txt
+data/chat_train_v1.txt
+data/chat_train_v2.txt
+data/chat_train_hinglish.txt
+data/final_train.txt
+data/chat_extra.txt
+data/chat_instruction.txt
+
+# IDE
+.vscode/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db

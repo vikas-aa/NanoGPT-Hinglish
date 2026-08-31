@@ -1,0 +1,9 @@
+hello world
+hello machine
+hello ai
+this is my first nano gpt
+we are learning transformers
+gpt learns patterns from text
+hello world
+hello machine
+hello ai
