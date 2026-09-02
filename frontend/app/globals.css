@@ -1,0 +1,116 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   Base
+   ============================================================ */
+:root {
+  --sidebar-width: 260px;
+}
+
+html {
+  font-size: 15px;
+}
+
+body {
+  @apply bg-white text-gray-900 antialiased;
+}
+
+.dark body {
+  @apply bg-gray-950 text-gray-100;
+}
+
+/* ============================================================
+   Scrollbar
+   ============================================================ */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 rounded-full;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  @apply bg-gray-700;
+}
+
+/* ============================================================
+   Prose / markdown inside chat bubbles
+   ============================================================ */
+.prose-chat {
+  @apply text-[0.9375rem] leading-relaxed;
+}
+
+.prose-chat p {
+  @apply mb-2 last:mb-0;
+}
+
+.prose-chat ul,
+.prose-chat ol {
+  @apply mb-2 pl-5;
+}
+
+.prose-chat ul {
+  @apply list-disc;
+}
+
+.prose-chat ol {
+  @apply list-decimal;
+}
+
+.prose-chat li {
+  @apply mb-0.5;
+}
+
+.prose-chat h1,
+.prose-chat h2,
+.prose-chat h3 {
+  @apply font-semibold mt-3 mb-1;
+}
+
+.prose-chat h1 { @apply text-lg; }
+.prose-chat h2 { @apply text-base; }
+.prose-chat h3 { @apply text-sm; }
+
+.prose-chat strong {
+  @apply font-semibold;
+}
+
+.prose-chat code:not(pre code) {
+  @apply bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-sm font-mono;
+}
+
+.prose-chat pre {
+  @apply rounded-lg overflow-hidden my-2;
+}
+
+/* ============================================================
+   Loading dots
+   ============================================================ */
+.dot-1 { animation: dotBounce 1.4s infinite ease-in-out both; animation-delay: -0.32s; }
+.dot-2 { animation: dotBounce 1.4s infinite ease-in-out both; animation-delay: -0.16s; }
+.dot-3 { animation: dotBounce 1.4s infinite ease-in-out both; }
+
+@keyframes dotBounce {
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+  40%           { transform: scale(1.0); opacity: 1; }
+}
+
+/* ============================================================
+   Fade-in animation
+   ============================================================ */
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

@@ -1,106 +1,206 @@
 from pathlib import Path
 import re
 
-HINGLISH_FILE = Path("data/chat_train_hinglish.txt")
+# ============================================================
+# FILES
+# ============================================================
+
+OLD_HINGLISH_FILE = Path("data/chat_train_hinglish.txt")
 INSTRUCTION_FILE = Path("data/chat_instruction.txt")
+LARGE_FILE = Path("data/large_hinglish_clean.txt")
+
 OUTPUT_FILE = Path("data/final_train.txt")
 
 
+# ============================================================
+# HELPERS
+# ============================================================
+
 def contains_devanagari(text):
-    """
-    True if text contains any Devanagari character.
-    """
-    return bool(re.search(r"[\u0900-\u097F]", text))
+    return bool(
+        re.search(r"[\u0900-\u097F]", text)
+    )
 
 
-def clean_and_filter(text):
+def split_blocks(text):
     """
-    Remove examples containing Devanagari characters.
-    Keep only examples written in Latin/English/Hinglish.
+    Split dataset into individual chat examples.
     """
 
-    blocks = re.split(r"\n\s*\n", text)
+    blocks = re.split(
+        r"\n\s*\n",
+        text
+    )
 
-    kept = []
-    removed = 0
+    return [
+        block.strip()
+        for block in blocks
+        if block.strip()
+    ]
 
-    for block in blocks:
 
-        block = block.strip()
+def read_dataset(path):
+    if not path.exists():
+        print(f"WARNING: {path} not found!")
+        return []
 
-        if not block:
-            continue
+    print(f"\nReading: {path}")
 
-        if contains_devanagari(block):
-            removed += 1
-            continue
+    text = path.read_text(
+        encoding="utf-8"
+    )
 
-        kept.append(block)
+    print(
+        "Characters:",
+        len(text)
+    )
 
-    return kept, removed
+    blocks = split_blocks(text)
 
+    print(
+        "Blocks:",
+        len(blocks)
+    )
+
+    return blocks
+
+
+# ============================================================
+# START
+# ============================================================
 
 print("=" * 60)
-print("CREATING CLEAN HINGLISH DATASET")
+print("CREATING LARGE HINGLISH DATASET")
 print("=" * 60)
+
 
 all_blocks = []
 
-for file in [HINGLISH_FILE, INSTRUCTION_FILE]:
 
-    print(f"\nReading: {file}")
+# ============================================================
+# OLD CLEAN DATA
+# ============================================================
 
-    if not file.exists():
-        print("ERROR: File not found!")
-        continue
+for path in [
+    OLD_HINGLISH_FILE,
+    INSTRUCTION_FILE,
+    LARGE_FILE
+]:
 
-    text = file.read_text(encoding="utf-8")
-
-    print("Characters:", len(text))
-
-    blocks, removed = clean_and_filter(text)
-
-    print("Kept blocks:", len(blocks))
-    print("Removed Devanagari blocks:", removed)
+    blocks = read_dataset(path)
 
     all_blocks.extend(blocks)
 
 
-# Remove exact duplicate examples
-unique_blocks = list(dict.fromkeys(all_blocks))
+print("\n" + "=" * 60)
+
+print(
+    "Total blocks before duplicates:",
+    len(all_blocks)
+)
 
 
-# Save final dataset
+# ============================================================
+# REMOVE DUPLICATES
+# ============================================================
+
+unique_blocks = list(
+    dict.fromkeys(all_blocks)
+)
+
+
+print(
+    "Unique blocks:",
+    len(unique_blocks)
+)
+
+
+# ============================================================
+# FINAL DEVANAGARI CHECK
+# ============================================================
+
+devanagari_count = 0
+
+for block in unique_blocks:
+
+    if contains_devanagari(block):
+        devanagari_count += 1
+
+
+print(
+    "Blocks containing Devanagari:",
+    devanagari_count
+)
+
+
+# ============================================================
+# SAVE
+# ============================================================
+
 OUTPUT_FILE.write_text(
     "\n\n".join(unique_blocks) + "\n",
     encoding="utf-8"
 )
 
 
+# ============================================================
+# RESULT
+# ============================================================
+
 print("\n" + "=" * 60)
 print("FINAL DATASET CREATED")
 print("=" * 60)
 
-print("Total blocks before duplicates:", len(all_blocks))
-print("Unique blocks:", len(unique_blocks))
-print("Output:", OUTPUT_FILE)
+print(
+    "Output:",
+    OUTPUT_FILE
+)
+
+print(
+    "Total unique blocks:",
+    len(unique_blocks)
+)
+
+print(
+    "Characters:",
+    len(
+        OUTPUT_FILE.read_text(
+            encoding="utf-8"
+        )
+    )
+)
+
 print(
     "Size:",
-    round(OUTPUT_FILE.stat().st_size / 1024, 2),
-    "KB"
+    round(
+        OUTPUT_FILE.stat().st_size
+        / (1024 * 1024),
+        2
+    ),
+    "MB"
+)
+
+print(
+    "Devanagari blocks:",
+    devanagari_count
 )
 
 
-# Final safety check
-final_text = OUTPUT_FILE.read_text(encoding="utf-8")
-
-if contains_devanagari(final_text):
-    print("\nWARNING: Devanagari text still exists!")
-else:
-    print("\nSUCCESS: No Devanagari characters found!")
-
+# ============================================================
+# PREVIEW
+# ============================================================
 
 print("\nFirst 1000 characters:")
 print("-" * 60)
-print(final_text[:1000])
+
+final_text = OUTPUT_FILE.read_text(
+    encoding="utf-8"
+)
+
+print(
+    final_text[:1000]
+)
+
 print("-" * 60)
+
+print("\nSUCCESS!")

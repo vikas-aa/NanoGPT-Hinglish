@@ -2,7 +2,7 @@ from tokenizers import Tokenizer
 import numpy as np
 import os
 
-TEXT_FILE = "data/final_train.txt"
+TEXT_FILE = "data/final_train_clean.txt"
 TOKENIZER_FILE = "data/tokenizer.json"
 
 TRAIN_FILE = "data/train.bin"

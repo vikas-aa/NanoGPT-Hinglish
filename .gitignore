@@ -1,38 +1,89 @@
-# Virtual environment
+# ============================================================
+# Python
+# ============================================================
+
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual Environment
 .venv/
 venv/
 env/
 
-# Python cache
-__pycache__/
-*.py[cod]
+# Environment variables
+.env
+.env.*
 
-# Training checkpoints
+# ============================================================
+# PyTorch / Model Checkpoints
+# ============================================================
+
 checkpoints/
+models/
 *.pt
 *.pth
 *.ckpt
+*.bin
+*.safetensors
 
-# Generated/tokenized training data
-data/train.bin
-data/val.bin
-data/tokenizer.json
+# ============================================================
+# Training / Generated Data
+# ============================================================
 
-# Dataset files
-data/chat_train.txt
-data/chat_train_v1.txt
-data/chat_train_v2.txt
-data/chat_train_hinglish.txt
-data/final_train.txt
-data/chat_extra.txt
-data/chat_instruction.txt
+data/*.bin
+data/*.txt
+data/*.json.bak
 
-# IDE
-.vscode/
+# Keep tokenizer.json if you want it in Git
+# data/tokenizer.json
 
+# ============================================================
+# Dataset / Reports / Generated Files
+# ============================================================
+
+data/*_report.txt
+data/*_report.json
+
+# ============================================================
+# Frontend - Next.js
+# ============================================================
+
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.turbo/
+
+# Next.js cache
+frontend/.cache/
+
+# ============================================================
 # Logs
-*.log
+# ============================================================
 
-# OS files
+*.log
+logs/
+
+# ============================================================
+# IDE / Editors
+# ============================================================
+
+.vscode/
+.idea/
+
+# ============================================================
+# OS
+# ============================================================
+
 .DS_Store
 Thumbs.db
+desktop.ini
+
+# ============================================================
+# Temporary Files
+# ============================================================
+
+*.tmp
+*.temp
+*.bak
+*.swp

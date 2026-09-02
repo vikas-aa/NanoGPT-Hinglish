@@ -8,7 +8,7 @@ import torch.nn.functional as F
 # ============================================================
 
 class GPTConfig:
-    vocab_size = 1438
+    vocab_size = 8000
 
     block_size = 128
 
