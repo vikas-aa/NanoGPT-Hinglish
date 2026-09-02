@@ -115,7 +115,7 @@ app = FastAPI(
 
 raw_origins = os.getenv(
     "ALLOWED_ORIGINS",
-    "http://localhost:3000,http://127.0.0.1:3000"
+    "http://localhost:3000,http://127.0.0.1:3000,https://nano-gpt-hinglish.vercel.app"
 )
 allowed_origins = [o.strip() for o in raw_origins.split(",") if o.strip()]
 

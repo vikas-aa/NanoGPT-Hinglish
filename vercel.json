@@ -1,12 +1,6 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
-  "installCommand": "npm install && npm install --prefix frontend",
+  "installCommand": "npm install --prefix frontend",
   "buildCommand": "npm run build --prefix frontend",
-  "outputDirectory": "frontend/.next",
-  "functions": {
-    "api/index.py": {
-      "maxDuration": 60
-    }
-  }
+  "outputDirectory": "frontend/.next"
 }

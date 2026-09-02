@@ -4,8 +4,8 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   async rewrites() {
     // In local development, proxy /api/* to the FastAPI server on port 8000.
-    // In production on Vercel, this rewrite is NOT returned — Vercel automatically
-    // routes /api/* to api/index.py (the Python serverless function) natively.
+    // In production (Vercel), no rewrites — the frontend calls the
+    // Hugging Face Space backend directly via NEXT_PUBLIC_API_URL.
     if (process.env.NODE_ENV === "development") {
       return [
         {
