@@ -11,6 +11,7 @@ from typing import List, Optional
 from contextlib import asynccontextmanager
 
 import torch
+from huggingface_hub import hf_hub_download
 from tokenizers import Tokenizer
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -25,8 +26,9 @@ from pydantic import BaseModel, field_validator
 BACKEND_DIR = Path(__file__).parent.resolve()
 PROJECT_ROOT = BACKEND_DIR.parent.resolve()
 
-TOKENIZER_PATH = PROJECT_ROOT / "data" / "tokenizer.json"
-CHECKPOINT_PATH = PROJECT_ROOT / "checkpoints" / "best_nanogpt.pt"
+HF_REPO_ID = "vikas0905/nano-gpt-hinglish"
+TOKENIZER_FILENAME = "tokenizer.json"
+CHECKPOINT_FILENAME = "best_nanogpt.pt"
 
 # Add project root to sys.path so we can import model.py
 sys.path.insert(0, str(PROJECT_ROOT))
@@ -56,17 +58,21 @@ async def lifespan(app: FastAPI):
     print(f"\nDevice: {_device.upper()}")
 
     # --- Tokenizer ---
-    if not TOKENIZER_PATH.exists():
-        raise FileNotFoundError(f"Tokenizer not found: {TOKENIZER_PATH}")
-    print(f"Loading tokenizer from {TOKENIZER_PATH} ...")
-    _tokenizer = Tokenizer.from_file(str(TOKENIZER_PATH))
+    tokenizer_path = hf_hub_download(
+        repo_id=HF_REPO_ID,
+        filename=TOKENIZER_FILENAME,
+    )
+    print(f"Loading tokenizer from {tokenizer_path} ...")
+    _tokenizer = Tokenizer.from_file(tokenizer_path)
     print("Tokenizer loaded.")
 
     # --- Checkpoint ---
-    if not CHECKPOINT_PATH.exists():
-        raise FileNotFoundError(f"Checkpoint not found: {CHECKPOINT_PATH}")
-    print(f"Loading checkpoint from {CHECKPOINT_PATH} ...")
-    checkpoint = torch.load(CHECKPOINT_PATH, map_location=_device)
+    checkpoint_path = hf_hub_download(
+        repo_id=HF_REPO_ID,
+        filename=CHECKPOINT_FILENAME,
+    )
+    print(f"Loading checkpoint from {checkpoint_path} ...")
+    checkpoint = torch.load(checkpoint_path, map_location=_device)
 
     # Build config from checkpoint
     _config = GPTConfig()
