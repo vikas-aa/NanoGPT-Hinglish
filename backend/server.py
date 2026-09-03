@@ -44,6 +44,10 @@ _tokenizer: Optional[Tokenizer] = None
 _config: Optional[GPTConfig] = None
 _device: str = "cpu"
 
+# Cached special-token IDs (populated at startup, avoids per-request lookup)
+_user_token_id: Optional[int] = None
+_assistant_token_id: Optional[int] = None
+
 # ============================================================
 # STARTUP / SHUTDOWN
 # ============================================================
@@ -53,9 +57,22 @@ _device: str = "cpu"
 async def lifespan(app: FastAPI):
     """Load model and tokenizer once at startup."""
     global _model, _tokenizer, _config, _device
+    global _user_token_id, _assistant_token_id
 
     _device = "cuda" if torch.cuda.is_available() else "cpu"
     print(f"\nDevice: {_device.upper()}")
+
+    # Disable gradient tracking globally — this is an inference-only server.
+    # Saves memory and removes gradient bookkeeping overhead on every tensor op.
+    torch.set_grad_enabled(False)
+
+    # On CPU, PyTorch defaults to using all available cores, which can hurt
+    # performance on shared-CPU hosts (e.g. Render free tier) due to context
+    # switching.  4 intra-op threads is a good balance for small models.
+    if _device == "cpu":
+        torch.set_num_threads(4)
+        torch.set_num_interop_threads(1)
+        print("CPU threads: 4 intra-op, 1 inter-op")
 
     # --- Tokenizer ---
     tokenizer_path = hf_hub_download(
@@ -90,6 +107,11 @@ async def lifespan(app: FastAPI):
 
     params = sum(p.numel() for p in _model.parameters())
     print(f"Model loaded. Parameters: {params:,}")
+
+    # Cache special-token IDs once so every request avoids a dict lookup
+    _user_token_id = _tokenizer.token_to_id(USER_TOKEN)
+    _assistant_token_id = _tokenizer.token_to_id(ASSISTANT_TOKEN)
+
     print("NanoGPT backend ready.\n")
 
     yield  # Server is running
@@ -257,7 +279,7 @@ def build_prompt(messages: List[MessageItem], config: GPTConfig, tokenizer: Toke
     return prompt
 
 
-@torch.no_grad()
+@torch.inference_mode()
 def generate_response(
     messages: List[MessageItem],
     max_new_tokens: int = 100,
@@ -283,25 +305,27 @@ def generate_response(
 
     x = torch.tensor([tokens], dtype=torch.long, device=_device)
 
-    # IDs for stop tokens
-    user_token_id = _tokenizer.token_to_id(USER_TOKEN)
-    assistant_token_id = _tokenizer.token_to_id(ASSISTANT_TOKEN)
-
     prompt_length = x.shape[1]
+
+    # Use pre-cached token IDs (avoids per-request tokenizer dict lookup)
+    user_token_id = _user_token_id
 
     for _ in range(max_new_tokens):
         x_cond = x[:, -_config.block_size:]
 
         logits, _ = _model(x_cond)
-        logits = logits[:, -1, :]  # last position
+        logits = logits[:, -1, :]  # last position — shape (1, vocab_size)
         logits = logits / temperature
 
-        # Top-k filtering
+        # Top-k filtering: keep only the top-k logits, set the rest to -inf.
+        # Using threshold comparison is faster than allocating a full -inf
+        # tensor and scattering values back.
         if top_k is not None and top_k > 0:
-            values, indices = torch.topk(logits, min(top_k, logits.size(-1)))
-            filtered = torch.full_like(logits, float("-inf"))
-            filtered.scatter_(1, indices, values)
-            logits = filtered
+            k = min(top_k, logits.size(-1))
+            topk_values, _ = torch.topk(logits, k)
+            # threshold = smallest value among top-k
+            threshold = topk_values[:, -1].unsqueeze(-1)
+            logits = logits.masked_fill(logits < threshold, float("-inf"))
 
         probs = torch.softmax(logits, dim=-1)
         next_token = torch.multinomial(probs, num_samples=1)
